@@ -15,8 +15,11 @@ Instead of using taiga.io (which I recommend as it's an amazing tool), I thought
 
 |ID|Name|Description|
 |---|---|---|
-|01|AntiDDOS|Must include economic incentive not to DDOS contract|
+|01|AntiDDoS|Must include economic incentive not to DDOS contract|
 |02|Timing|Must specify a question time init and timeout|
+|03|Owner|Must ensure only the owner can change question|
+|04|Don't trick|Must ensure every answer submmited cannot be reconstructed|
+|05|Participants|Could preset a number of possible participants|
 
 
 ### User Stories 
