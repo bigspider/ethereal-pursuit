@@ -26,9 +26,9 @@ Ref. sequence diagram posted in the picture.
 
 |Backlog|Refinement needed|In progress|Testing|Done|
 |---|---|---|---|
-|01, TBD|||
-|02, TBD|||
-|03, TBD|||
-|04, TBD|||
-|05, TBD|||
-|06, TBD|||
+|01, TBD||||
+|02, TBD||||
+|03, TBD||||
+|04, TBD||||
+|05, TBD||||
+|06, TBD||||
