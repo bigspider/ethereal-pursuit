@@ -25,7 +25,7 @@ Ref. sequence diagram posted in the picture.
 ### Vanilla Kanban board
 
 |Backlog|Refinement needed|In progress|Testing|Done|
-|---|---|---|---|
+|---|---|---|---|---|
 |01, TBD||||
 |02, TBD||||
 |03, TBD||||
