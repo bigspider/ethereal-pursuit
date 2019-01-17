@@ -2,9 +2,21 @@
 Answer questions, win prizes
 
 
+### Action Board
+
+- **16/1/19: Select your user story!**
+
 ### User Stories 
 
 Instead of using taiga.io (which I recommend as it's an amazing tool), I thought it would be faster to slice the chunks of work required here. 
+
+
+### Basic Requirements
+
+|ID|Name|Description|
+|---|---|---|
+|01|AntiDDOS|Must include economic incentive not to DDOS contract|
+|02|Timing|Must specify a question time init and timeout|
 
 
 ### User Stories 
