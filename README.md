@@ -4,7 +4,8 @@ Answer questions, win prizes
 
 ### Action Board
 
-- **16/1/19: Select your user story!**
+- **16/1/19: Select your user story!** : I selected my ones, but happy to change/discuss!
+- **TBD**: start development!!
 
 ### User Stories 
 
