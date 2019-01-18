@@ -43,9 +43,9 @@ Ref. sequence diagram posted in the picture.
 
 |Backlog|Refinement needed|In progress|Testing|Done|
 |---|---|---|---|---|
-|01, TBD||||
-|02, TBD||||
+|||01, SC||
+|02, SC||||
 |03, TBD||||
-|04, TBD||||
+|04, SC||||
 |05, TBD||||
 |06, TBD||||
