@@ -51,7 +51,7 @@ contract Quiz {
       // TODO
   }
 
-  function revealRightAnswer(bytes32 _right_answer, bytes32 randomness) onlyOwner onlyCommitPhase oublic {
+  function revealRightAnswer(bytes32 _right_answer, bytes32 randomness) onlyOwner onlyCommitPhase public {
       //TODO: verifies right answer, save it, switch to phase 2
   }
 
