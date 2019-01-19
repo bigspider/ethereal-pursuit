@@ -45,7 +45,7 @@ Ref. sequence diagram posted in the picture.
 |---|---|---|---|---|
 |||01, SC||
 |02, SC||||
-|03, TBD||||
+|||03, JE||
 |04, SC||||
-|05, TBD||||
+|||05, JE||
 |06, TBD||||
