@@ -42,9 +42,17 @@ contract Quiz {
   
   function initQuiz(string memory _question, bytes32 _rightAnswer) onlyInitPhase onlyOwner public {
       question = _question;
-      rightAnswerCommitment = _rightAnswer;
-      
-      
+      rightAnswerCommitment = _rightAnswer;   
+  }
+  
+   // Returns current question
+  function whichQuestion() onlyOwner public returns (string memory ){
+        return question;
+  }
+  
+  // Returns current phase
+  function whichPhase() onlyOwner public returns (uint8 ){
+        return phase;
   }
 
 
@@ -53,17 +61,6 @@ contract Quiz {
   function commitAnswer(bytes32 answer) onlyCommitPhase public {
       // TODO
   }
-
-  function initQuiz(string memory _question, bytes32 _rightAnswer) onlyOwner() onlyOwner public {
-      question = _question;
-      rightAnswerCommitment = _rightAnswer;
-  }
-
-  function whichQuestion()  onlyOwner()  public returns (string memory ){
-        return question;
-    }
-
-
 
   // 2: CLAIM
   function claimRightAnswer(bytes32 answer, bytes32 randomness) onlyClaimPhase public {
@@ -80,7 +77,7 @@ contract Quiz {
       //TODO: allow withdrawal of the prize if user won
   }
   
-  function cleanup() onlyWithdrawPhase onlyOwner public {
-      //TODO
+  function cleanup() onlyWithdrawPhase onlyOwner public returns (uint8 ){
+      phase = 0;
   }
 }
