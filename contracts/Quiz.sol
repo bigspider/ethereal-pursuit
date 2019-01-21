@@ -38,10 +38,13 @@ contract Quiz {
   }
 
   
-  // 0: INIT
+  // 0: INIT - Please commit hashed answer
   
   function initQuiz(string memory _question, bytes32 _rightAnswer) onlyInitPhase onlyOwner public {
-      // TODO
+      question = _question;
+      rightAnswerCommitment = _rightAnswer;
+      
+      
   }
 
 
@@ -51,9 +54,14 @@ contract Quiz {
       // TODO
   }
 
-  function revealRightAnswer(bytes32 _right_answer, bytes32 randomness) onlyOwner onlyCommitPhase public {
-      //TODO: verifies right answer, save it, switch to phase 2
+  function initQuiz(string memory _question, bytes32 _rightAnswer) onlyOwner() onlyOwner public {
+      question = _question;
+      rightAnswerCommitment = _rightAnswer;
   }
+
+  function whichQuestion()  onlyOwner()  public returns (string memory ){
+        return question;
+    }
 
 
 
