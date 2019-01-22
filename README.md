@@ -44,7 +44,7 @@ Ref. sequence diagram posted in the picture.
 |Backlog|Refinement needed|In progress|Testing|Done|
 |---|---|---|---|---|
 |||01, SC||
-|02, SC||||
+|||02, SC||
 |||03, JE||
 |04, SC||||
 |||05, JE||
