@@ -43,6 +43,7 @@ contract Quiz {
   function initQuiz(string memory _question, bytes32 _rightAnswer) onlyInitPhase onlyOwner public {
       question = _question;
       rightAnswerCommitment = _rightAnswer;   
+      phase += 1;
   }
   
    // Returns current question
