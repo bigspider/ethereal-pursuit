@@ -110,7 +110,11 @@ contract Quiz {
     function startWithdrawals() onlyClaimPhase onlyOwner public {
         //TODO: require timeout expiry
         
-        prizeAmount = address(this).balance / nWinners;
+        if (nWinners == 0) {
+            prizeAmount = 0;
+        } else {
+            prizeAmount = address(this).balance / nWinners;
+        }
 
         changePhase(Phase.Withdraw);
     }
