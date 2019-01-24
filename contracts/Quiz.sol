@@ -3,41 +3,51 @@ pragma solidity >=0.4.21 <0.6.0;
 contract Quiz {
     address public owner;
 
-    uint8 phase = 0;
+    enum Phase { Init, Commit, Claim, Withdraw }
 
-    uint32 quiz_number = 0;
-    string question;
+    Phase public phase = Phase.Init;
+
+    uint32 quizNumber = 0;
+    string public question;
     bytes32 rightAnswerCommitment; // Commitment of the correct answer
-    bytes32 rightAnswer; // Actual answer, after reveal
+    bytes32 public rightAnswer; // Actual answer, after reveal
     
-    uint n_winners = 0; // Number of winners for this round
-    uint prize_amount; // Amount that winner can withdraw
+    uint nWinners = 0; // Number of winners for this round
+    uint prizeAmount; // Amount that winner can withdraw
     
     mapping(address => bytes32) answers;    // Commitment of the answers for each user
     mapping(address => uint32) userWon;    // userWon[addr] is set to quiz_number if the user gave the right answer
+
+
+    event PhaseChange(Phase newPhase);
 
     constructor() public {
         owner = msg.sender;
     }
 
     modifier onlyOwner() {
-        if (msg.sender == owner) _;
+        require(msg.sender == owner);
+        _;
     }
 
     modifier onlyInitPhase() {
-        if (phase == 0) _;
+        require(phase == Phase.Init);
+        _;
     }
 
     modifier onlyCommitPhase() {
-        if (phase == 1) _;
+        require(phase == Phase.Commit);
+        _;
     }
 
     modifier onlyClaimPhase() {
-        if (phase == 2) _;
+        require(phase == Phase.Claim);
+        _;
     }
 
     modifier onlyWithdrawPhase() {
-        if (phase == 3) _;
+        require(phase == Phase.Withdraw);
+        _;
     }
 
 
@@ -57,70 +67,63 @@ contract Quiz {
             msg.sender.send(msg.value - _amount);
     }
 
-    // Returns current question
-    // TODO: Redundant? question is public
-    function whichQuestion() onlyOwner public returns (string memory ){
-        return question;
+    function changePhase(Phase newPhase) internal {
+        phase = newPhase;
+        emit PhaseChange(newPhase);
     }
-    
-    // Returns current phase
-    // TODO: Redundant? phase is public
-    function whichPhase() onlyOwner public returns (uint8 ){
-        return phase;
-    }
-    
-    // 0: INIT - Please commit hashed answer
+
+    // 0: INIT
     
     function initQuiz(string memory _question, bytes32 _rightAnswerCommitment) onlyInitPhase onlyOwner public {
         question = _question;
         rightAnswerCommitment = _rightAnswerCommitment;
-        phase += 1;
+        changePhase(Phase.Commit);
     }
 
 
     // 1: COMMIT
-    function commitAnswer(bytes32 user_answer) onlyCommitPhase public payable costs(1 ether) {
+    function commitAnswer(bytes32 userAnswer) onlyCommitPhase public payable costs(1 ether) {
         //TODO: check timeout for phase 1
         
-        answers[msg.sender] = user_answer;
+        answers[msg.sender] = userAnswer;
     }
 
     function startClaimPhase() onlyCommitPhase onlyOwner public {
         //TODO: require timeout expiry
         
-        phase += 1;
+        changePhase(Phase.Claim);
     }
 
     // 2: CLAIM
-    function claimRightAnswer(bytes32 user_answer, bytes32 randomness) onlyClaimPhase public {
+    function claimRightAnswer(bytes32 userAnswer, bytes32 randomness) onlyClaimPhase public {
         //TODO: check timeout
 
         require(
-            keccak256(abi.encodePacked(quiz_number, user_answer, randomness)) == answers[msg.sender],
+            keccak256(abi.encodePacked(quizNumber, userAnswer, randomness)) == answers[msg.sender],
             "The answer is wrong or malformed."
         );
         
-        n_winners += 1;
-        userWon[msg.sender] = quiz_number;
+        nWinners += 1;
+        userWon[msg.sender] = quizNumber;
     }
     
     function startWithdrawals() onlyClaimPhase onlyOwner public {
         //TODO: require timeout expiry
         
-        prize_amount = address(this).balance / n_winners;
-        
-        phase += 1;
+        prizeAmount = address(this).balance / nWinners;
+
+        changePhase(Phase.Withdraw);
     }
 
 
     // 3: WITHDRAW
     function withdrawPrize() onlyWithdrawPhase public {
-        if (userWon[msg.sender] == quiz_number) {
+        if (userWon[msg.sender] == quizNumber) {
             //Make sure user can withdraw only once
             delete userWon[msg.sender];
             delete answers[msg.sender];
             
-            msg.sender.transfer(prize_amount);
+            msg.sender.transfer(prizeAmount);
         }
     }
     
@@ -128,8 +131,8 @@ contract Quiz {
         //Transfer any remaining balance to the owner (== the caller)
         msg.sender.transfer(address(this).balance);
         
-        phase = 0;
-        n_winners = 0;
-        quiz_number += 1;
+        changePhase(Phase.Init);
+        nWinners = 0;
+        quizNumber += 1;
     }
 }
