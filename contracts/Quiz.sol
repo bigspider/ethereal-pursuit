@@ -3,20 +3,20 @@ pragma solidity >=0.4.21 <0.6.0;
 contract Quiz {
     address public owner;
 
-    enum Phase { Init, Commit, Claim, Withdraw }
+    enum Phase { Init, Commit, Reveal, Claim, Withdraw }
 
     Phase public phase = Phase.Init;
 
     uint32 quizNumber = 0;
     string public question;
-    bytes32 rightAnswerCommitment; // Commitment of the correct answer
+    bytes32 rightAnswerCommitment; // Commitment of the correct answer (H(rightAnswer || randomness))
     bytes32 public rightAnswer; // Actual answer, after reveal
     
     uint nWinners = 0; // Number of winners for this round
     uint prizeAmount; // Amount that winner can withdraw
     
-    mapping(address => bytes32) answers;    // Commitment of the answers for each user
-    mapping(address => uint32) userWon;    // userWon[addr] is set to quiz_number if the user gave the right answer
+    mapping(address => bytes32) answers; // Commitment of the answers for each user (H(quizNumber || rightAnswer || randomness))
+    mapping(address => uint32) userWon; // userWon[addr] is set to quiz_number if the user gave the right answer
 
 
     event PhaseChange(Phase newPhase);
@@ -37,6 +37,11 @@ contract Quiz {
 
     modifier onlyCommitPhase() {
         require(phase == Phase.Commit);
+        _;
+    }
+
+    modifier onlyRevealPhase() {
+        require(phase == Phase.Reveal);
         _;
     }
 
@@ -72,6 +77,7 @@ contract Quiz {
         emit PhaseChange(newPhase);
     }
 
+
     // 0: INIT
     
     function initQuiz(string memory _question, bytes32 _rightAnswerCommitment) onlyInitPhase onlyOwner public {
@@ -88,13 +94,25 @@ contract Quiz {
         answers[msg.sender] = userAnswer;
     }
 
-    function startClaimPhase() onlyCommitPhase onlyOwner public {
+    function startRevealPhase() onlyCommitPhase onlyOwner public {
         //TODO: require timeout expiry
+        
+        changePhase(Phase.Reveal);
+    }
+
+
+    // 2: REVEAL
+    function revealAnswer(bytes32 answer, bytes32 randomness) onlyRevealPhase onlyOwner public {
+        require(
+            keccak256(abi.encodePacked(answer, randomness)) == rightAnswerCommitment,
+            "The answer is wrong or malformed."
+        );
         
         changePhase(Phase.Claim);
     }
 
-    // 2: CLAIM
+
+    // 3: CLAIM
     function claimRightAnswer(bytes32 userAnswer, bytes32 randomness) onlyClaimPhase public {
         //TODO: check timeout
 
@@ -120,7 +138,7 @@ contract Quiz {
     }
 
 
-    // 3: WITHDRAW
+    // 4: WITHDRAW
     function withdrawPrize() onlyWithdrawPhase public {
         if (userWon[msg.sender] == quizNumber) {
             //Make sure user can withdraw only once
