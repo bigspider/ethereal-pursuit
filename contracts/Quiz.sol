@@ -25,33 +25,15 @@ contract Quiz {
         owner = msg.sender;
     }
 
+
     modifier onlyOwner() {
         require(msg.sender == owner);
         _;
     }
-
-    modifier onlyInitPhase() {
-        require(phase == Phase.Init);
-        _;
-    }
-
-    modifier onlyCommitPhase() {
-        require(phase == Phase.Commit);
-        _;
-    }
-
-    modifier onlyRevealPhase() {
-        require(phase == Phase.Reveal);
-        _;
-    }
-
-    modifier onlyClaimPhase() {
-        require(phase == Phase.Claim);
-        _;
-    }
-
-    modifier onlyWithdrawPhase() {
-        require(phase == Phase.Withdraw);
+    
+    //Only allow when the contract is in a certain phase
+    modifier onlyInPhase(Phase _phase) {
+        require(phase == _phase);
         _;
     }
 
@@ -80,7 +62,7 @@ contract Quiz {
 
     // 0: INIT
     
-    function initQuiz(string memory _question, bytes32 _rightAnswerCommitment) onlyInitPhase onlyOwner public {
+    function initQuiz(string memory _question, bytes32 _rightAnswerCommitment) onlyInPhase(Phase.Init) onlyOwner public {
         question = _question;
         rightAnswerCommitment = _rightAnswerCommitment;
         changePhase(Phase.Commit);
@@ -88,13 +70,13 @@ contract Quiz {
 
 
     // 1: COMMIT
-    function commitAnswer(bytes32 userAnswer) onlyCommitPhase public payable costs(1 ether) {
+    function commitAnswer(bytes32 userAnswer) onlyInPhase(Phase.Commit) public payable costs(1 ether) {
         //TODO: check timeout for phase 1
         
         answers[msg.sender] = userAnswer;
     }
 
-    function startRevealPhase() onlyCommitPhase onlyOwner public {
+    function startRevealPhase() onlyInPhase(Phase.Commit) onlyOwner public {
         //TODO: require timeout expiry
         
         changePhase(Phase.Reveal);
@@ -102,7 +84,7 @@ contract Quiz {
 
 
     // 2: REVEAL
-    function revealAnswer(bytes32 answer, bytes32 randomness) onlyRevealPhase onlyOwner public {
+    function revealAnswer(bytes32 answer, bytes32 randomness) onlyInPhase(Phase.Reveal) onlyOwner public {
         require(
             keccak256(abi.encodePacked(answer, randomness)) == rightAnswerCommitment,
             "The answer is wrong or malformed."
@@ -113,7 +95,7 @@ contract Quiz {
 
 
     // 3: CLAIM
-    function claimRightAnswer(bytes32 userAnswer, bytes32 randomness) onlyClaimPhase public {
+    function claimRightAnswer(bytes32 userAnswer, bytes32 randomness) onlyInPhase(Phase.Claim) public {
         //TODO: check timeout
 
         require(
@@ -125,7 +107,7 @@ contract Quiz {
         userWon[msg.sender] = quizNumber;
     }
     
-    function startWithdrawals() onlyClaimPhase onlyOwner public {
+    function startWithdrawals() onlyInPhase(Phase.Claim) onlyOwner public {
         //TODO: require timeout expiry
         
         if (nWinners == 0) {
@@ -139,7 +121,7 @@ contract Quiz {
 
 
     // 4: WITHDRAW
-    function withdrawPrize() onlyWithdrawPhase public {
+    function withdrawPrize() onlyInPhase(Phase.Withdraw) public {
         if (userWon[msg.sender] == quizNumber) {
             //Make sure user can withdraw only once
             delete userWon[msg.sender];
@@ -149,7 +131,7 @@ contract Quiz {
         }
     }
     
-    function cleanup() onlyWithdrawPhase onlyOwner public {
+    function cleanup() onlyInPhase(Phase.Withdraw) onlyOwner public {
         //Transfer any remaining balance to the owner (== the caller)
         msg.sender.transfer(address(this).balance);
         
