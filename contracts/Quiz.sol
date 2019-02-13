@@ -7,10 +7,10 @@ contract Quiz {
 
     Phase public phase = Phase.Init;
 
-    uint32 quizNumber = 0;
+    uint32 public quizNumber = 0;
     string public question;
-    bytes32 rightAnswerCommitment; // Commitment of the correct answer (H(rightAnswer || randomness))
-    bytes32 public rightAnswer; // Actual answer, after reveal
+    bytes32 rightAnswerCommitment; // Commitment of the correct answer (H(quizNumber || rightAnswer || randomness))
+    string public rightAnswer; // Actual answer, after reveal
     
     uint nWinners = 0; // Number of winners for this round
     uint prizeAmount; // Amount that winner can withdraw
@@ -20,6 +20,7 @@ contract Quiz {
 
 
     event PhaseChange(Phase newPhase);
+    event AnswerRevealed(string answer);
 
     constructor() public {
         owner = msg.sender;
@@ -27,13 +28,13 @@ contract Quiz {
 
 
     modifier onlyOwner() {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "Only the contract owner can execute this function");
         _;
     }
     
     //Only allow when the contract is in a certain phase
     modifier onlyInPhase(Phase _phase) {
-        require(phase == _phase);
+        require(phase == _phase, "This function cannot be called in this phase");
         _;
     }
 
@@ -62,7 +63,7 @@ contract Quiz {
 
     // 0: INIT
     
-    function initQuiz(string memory _question, bytes32 _rightAnswerCommitment) onlyInPhase(Phase.Init) onlyOwner public {
+    function initQuiz(string memory _question, bytes32 _rightAnswerCommitment) public onlyInPhase(Phase.Init) onlyOwner {
         question = _question;
         rightAnswerCommitment = _rightAnswerCommitment;
         changePhase(Phase.Commit);
@@ -70,13 +71,13 @@ contract Quiz {
 
 
     // 1: COMMIT
-    function commitAnswer(bytes32 userAnswer) onlyInPhase(Phase.Commit) public payable costs(1 ether) {
+    function commitAnswer(bytes32 userAnswerCommitment) public onlyInPhase(Phase.Commit) payable costs(1 ether) {
         //TODO: check timeout for phase 1
         
-        answers[msg.sender] = userAnswer;
+        answers[msg.sender] = userAnswerCommitment;
     }
 
-    function startRevealPhase() onlyInPhase(Phase.Commit) onlyOwner public {
+    function startRevealPhase() public onlyInPhase(Phase.Commit) onlyOwner {
         //TODO: require timeout expiry
         
         changePhase(Phase.Reveal);
@@ -84,18 +85,19 @@ contract Quiz {
 
 
     // 2: REVEAL
-    function revealAnswer(bytes32 answer, bytes32 randomness) onlyInPhase(Phase.Reveal) onlyOwner public {
+    function revealAnswer(string memory answer, bytes32 randomness) public onlyInPhase(Phase.Reveal) onlyOwner {
         require(
-            keccak256(abi.encodePacked(answer, randomness)) == rightAnswerCommitment,
+            keccak256(abi.encodePacked(quizNumber, answer, randomness)) == rightAnswerCommitment,
             "The answer is wrong or malformed."
         );
         
+        emit AnswerRevealed(answer);
         changePhase(Phase.Claim);
     }
 
 
     // 3: CLAIM
-    function claimRightAnswer(bytes32 userAnswer, bytes32 randomness) onlyInPhase(Phase.Claim) public {
+    function claimRightAnswer(string memory userAnswer, bytes32 randomness) public onlyInPhase(Phase.Claim) {
         //TODO: check timeout
 
         require(
@@ -107,7 +109,7 @@ contract Quiz {
         userWon[msg.sender] = quizNumber;
     }
     
-    function startWithdrawals() onlyInPhase(Phase.Claim) onlyOwner public {
+    function startWithdrawals() public onlyInPhase(Phase.Claim) onlyOwner {
         //TODO: require timeout expiry
         
         if (nWinners == 0) {
@@ -118,10 +120,10 @@ contract Quiz {
 
         changePhase(Phase.Withdraw);
     }
-
+    
 
     // 4: WITHDRAW
-    function withdrawPrize() onlyInPhase(Phase.Withdraw) public {
+    function withdrawPrize() public onlyInPhase(Phase.Withdraw) {
         if (userWon[msg.sender] == quizNumber) {
             //Make sure user can withdraw only once
             delete userWon[msg.sender];
@@ -131,7 +133,7 @@ contract Quiz {
         }
     }
     
-    function cleanup() onlyInPhase(Phase.Withdraw) onlyOwner public {
+    function cleanup() public onlyInPhase(Phase.Withdraw) onlyOwner {
         //Transfer any remaining balance to the owner (== the caller)
         msg.sender.transfer(address(this).balance);
         
