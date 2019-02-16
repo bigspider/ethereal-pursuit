@@ -13,7 +13,7 @@ Each participant will pay a fee to participate and attempt giving and answer. At
 
 The contract can be in 5 statuses: Init, Commit, Reveal, Claim, Withdraw, that happen in this order.
 
-The owner and the participating players will send their answer in the form of a commitment, H(quizNumber||answer||nonce), and reveal it later by revealing the nonce. The commitment includes quizNumber in order to invalidate any answer given in a previous game.
+The owner and the participating players will send their answer in the form of a commitment, H(quizNumber||answer||nonce), and reveal it later by revealing the nonce. The commitment includes quizNumber in order to invalidate any answer given in a previous game (quizNumber is incremented for each quiz)
 
 Note: Timeouts should be added to the protocol, to reduce the power of the contract owner.
 
