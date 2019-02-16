@@ -25,7 +25,7 @@ Note: Timeouts should be added to the protocol, to reduce the power of the contr
 
 ## Comments on the protocol
 ### Efficiency
-Each interaction with the protocol requires a constant amount of gas. Most notably, payouts are withdrawn by each user rather than paid directly to all the winners (which would require gas proportional to he number of users).
+Each interaction with the protocol requires a constant amount of gas. Most notably, payouts are withdrawn by each user rather than paid directly to all the winners (which would require gas proportional to the number of users).
 
 ### Security
 
