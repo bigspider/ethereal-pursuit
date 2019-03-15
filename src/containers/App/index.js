@@ -57,10 +57,28 @@ class App extends Component {
     this.quiz.setProvider(this.web3Provider);
   }
 
-  computeAnswerCommitment = (answer, nonce) => {
+  //Commitment for the owner is H(quizNumber || answer || nonce)
+  computeOwnerAnswerCommitment = (answer, nonce) => {
     return soliditySha3({
       type: 'uint32',
       value: this.state.quizNumber
+    }, {
+      type: 'string',
+      value: answer
+    }, {
+      type: 'bytes32',
+      value: nonce
+    });
+  };
+
+  //Commitment for the user is H(quizNumber || userAddress || answer || nonce)
+  computeUserAnswerCommitment = (answer, nonce) => {
+    return soliditySha3({
+      type: 'uint32',
+      value: this.state.quizNumber
+    }, {
+      type: 'bytes32',
+      value: this.state.account
     }, {
       type: 'string',
       value: answer
@@ -119,7 +137,7 @@ class App extends Component {
 
   onCreateNewQuiz = (newQuestion, newAnswer) => {
     const nonce = soliditySha3({ type: "bytes32", value: randomHex(32) }); //TODO: better way of generating the nonce?
-    const newAnswerCommitment = this.computeAnswerCommitment(newAnswer, nonce);
+    const newAnswerCommitment = this.computeOwnerAnswerCommitment(newAnswer, nonce);
     this.quizInstance.initQuiz(newQuestion, newAnswerCommitment, { from: this.state.account }).then(() => {
       localStorage.setItem("answer", newAnswer);
       localStorage.setItem("answerNonce", nonce);
@@ -158,7 +176,7 @@ class App extends Component {
 
   onCommitAnswer = (answer) => {
     const nonce = soliditySha3({ type: "bytes32", value: randomHex(32) }); //TODO: better way of generating the nonce?
-    const newAnswerCommitment = this.computeAnswerCommitment(answer, nonce);
+    const newAnswerCommitment = this.computeUserAnswerCommitment(answer, nonce);
     this.quizInstance.commitAnswer(newAnswerCommitment, { from: this.state.account, value: toWei("1", "ether") }).then(() => {
       localStorage.setItem("playerAnswer", answer);
       localStorage.setItem("playerAnswerNonce", nonce);

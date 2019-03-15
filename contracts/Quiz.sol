@@ -92,6 +92,9 @@ contract Quiz {
         );
         
         emit AnswerRevealed(answer);
+
+        rightAnswer = answer;
+
         changePhase(Phase.Claim);
     }
 
@@ -101,10 +104,13 @@ contract Quiz {
         //TODO: check timeout
 
         require(
-            keccak256(abi.encodePacked(quizNumber, userAnswer, randomness)) == answers[msg.sender],
+            keccak256(abi.encodePacked(quizNumber, msg.sender, userAnswer, randomness)) == answers[msg.sender],
             "The answer is wrong or malformed."
         );
         
+        //Check if answer matches the official correct answer
+        require(keccak256(abi.encodePacked(userAnswer)) == keccak256(abi.encodePacked(rightAnswer)), "Your answer is wrong.");
+
         nWinners += 1;
         userWon[msg.sender] = quizNumber;
     }
